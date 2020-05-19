@@ -37,6 +37,13 @@ def init_relay():
 		print("except")
 		GPIO.cleanup()
 
+def allNC_relay():
+    for ii in range(3):
+		GPIO.output(Relay[ii],GPIO.HIGH)
+		print("Channel {}:The Common Contact is access to the Normal Closed Contact!".format(ii+1))
+		print("-----------------------")
+		time.sleep(1)
+
 
 
 def select_relay():
@@ -44,37 +51,41 @@ def select_relay():
 	flag_2 = True
 	flag_3 = True
 
-	while True:
-		relayNum = input("Please enter the number of relay[1-3].")  		
-			if (relayNum == 1):
-				if (flag_1):
-					GPIO.output(Relay[relayNum-1],GPIO.LOW)
-					print("Channel {}:The Common Contact is access to the Normal Open Contact!".format(relayNum))
-					flag_1 = not flag_1
+	try:
+		while True:
+			relayNum = input("Please enter the number of relay[1-3].")  		
+				if (relayNum == 1):
+					if (flag_1):
+						GPIO.output(Relay[relayNum-1],GPIO.LOW)
+						print("Channel {}:The Common Contact is access to the Normal Open Contact!".format(relayNum))
+						flag_1 = not flag_1
+					else:
+						GPIO.output(Relay[relayNum-1],GPIO.High)
+						print("Channel {}:The Common Contact is access to the Normal Closed Contact!".format(relayNum))
+						flag_1 = not flag_1
+				elif (relayNum == 2):
+					if (flag_2):
+						GPIO.output(Relay[relayNum-1],GPIO.LOW)
+						print("Channel {}:The Common Contact is access to the Normal Open Contact!".format(relayNum))
+						flag_2 = not flag_2
+					else:
+						GPIO.output(Relay[relayNum-1],GPIO.High)
+						print("Channel {}:The Common Contact is access to the Normal Closed Contact!".format(relayNum))
+						flag_2 = not flag_2
+				elif (relayNum == 3):
+					if (flag_3):
+						GPIO.output(Relay[relayNum-1],GPIO.LOW)
+						print("Channel {}:The Common Contact is access to the Normal Open Contact!".format(relayNum))
+						flag_3 = not flag_3
+					else:
+						GPIO.output(Relay[relayNum-1],GPIO.High)
+						print("Channel {}:The Common Contact is access to the Normal Closed Contact!".format(relayNum))
+						flag_3 = not flag_3
 				else:
-					GPIO.output(Relay[relayNum-1],GPIO.High)
-					print("Channel {}:The Common Contact is access to the Normal Closed Contact!".format(relayNum))
-					flag_1 = not flag_1
-			elif (relayNum == 2):
-				if (flag_2):
-    				GPIO.output(Relay[relayNum-1],GPIO.LOW)
-					print("Channel {}:The Common Contact is access to the Normal Open Contact!".format(relayNum))
-					flag_2 = not flag_2
-				else:
-					GPIO.output(Relay[relayNum-1],GPIO.High)
-					print("Channel {}:The Common Contact is access to the Normal Closed Contact!".format(relayNum))
-					flag_2 = not flag_2
-			elif (relayNum == 3):
-				if (flag_3):
-    				GPIO.output(Relay[relayNum-1],GPIO.LOW)
-					print("Channel {}:The Common Contact is access to the Normal Open Contact!".format(relayNum))
-					flag_3 = not flag_3
-				else:
-					GPIO.output(Relay[relayNum-1],GPIO.High)
-					print("Channel {}:The Common Contact is access to the Normal Closed Contact!".format(relayNum))
-					flag_3 = not flag_3
-			else:
-    			print("No such name, please try again")
+					print("No such name, please try again")
+	except:
+		allNC_relay()
+		print("Good bye.")
 
 init_relay()
 init_relay()
