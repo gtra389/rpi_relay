@@ -3,8 +3,8 @@
 ##################################################
 
 #           P26 ----> Relay_Ch1
-#			P20 ----> Relay_Ch2
-#			P21 ----> Relay_Ch3
+#	    P20 ----> Relay_Ch2
+#	    P21 ----> Relay_Ch3
 
 ##################################################
 
@@ -95,8 +95,9 @@ def action(changePin, action):
    return render_template('main.html', **templateData)
 
 try:
+    init_relay()
     if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=80, debug=True)
+   	 app.run(host='192.168.0.128', port=8000, debug=True)
 except KeyboardInterrupt:
 	allNC_relay()
 	print("Good bye.")    
