@@ -61,13 +61,13 @@ class MyServerHandler(BaseHTTPRequestHandler):
         and control GPIO of a Raspberry Pi
     """
 
-    def do_HEAD(self):
-        """ do_HEAD() can be tested use curl command 
-            'curl -I http://server-ip-address:port' 
-        """
-        self.send_response(200)
-        self.send_header('Content-type', 'text/html')
-        self.end_headers()
+    # def do_HEAD(self):
+    #     """ do_HEAD() can be tested use curl command 
+    #         'curl -I http://server-ip-address:port' 
+    #     """
+    #     self.send_response(200)
+    #     self.send_header('Content-type', 'text/html')
+    #     self.end_headers()
 
     def do_GET(self):
         """ do_GET() can be tested using curl command 
@@ -76,16 +76,11 @@ class MyServerHandler(BaseHTTPRequestHandler):
         html = '''
             <head>
             <title>RPi Web Server</title>
-            <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
-            <!-- Optional theme -->
-            <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
-            <!-- Latest compiled and minified JavaScript -->
-            <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
             </head>
 
             <body style="width:960px; margin: 20px auto;">
             <p>Current GPU temperature is {}</p>
-            <p>Turn Relay Channel 1: <a href="/index.html/ch1_on">ON</a> <a href="/index.html/ch1_off">OFF</a></p>
+            <p>Turn Relay Channel 1: <a href="/ch1_on">ON</a> <a href="/ch1_off">OFF</a></p>
             <p>Turn Relay Channel 2: <a href="/index.html/ch2_on">ON</a> <a href="/index.html/ch2_off">OFF</a></p>
             <p>Turn Relay Channel 3: <a href="/index.html/ch3_on">ON</a> <a href="/index.html/ch3_off">OFF</a></p>
             <p>Current status</p>
@@ -101,7 +96,7 @@ class MyServerHandler(BaseHTTPRequestHandler):
             </html>
         '''
         temp = os.popen("/opt/vc/bin/vcgencmd measure_temp").read()
-        self.do_HEAD()
+        # self.do_HEAD()
         status = ''
         if self.path == '/':
             self.send_response(301)
@@ -115,6 +110,8 @@ class MyServerHandler(BaseHTTPRequestHandler):
             self.send_header('Content-Length', len(content))
             self.end_headers()
             self.wfile.write(content)
+            status = "Start"
+            self.wfile.write(html.format(temp[5:], status).encode("utf-8"))
 
         elif self.path == '/stream.mjpg':                
             self.send_response(200)
@@ -139,12 +136,28 @@ class MyServerHandler(BaseHTTPRequestHandler):
                     'Removed streaming client %s: %s',
                     self.client_address, str(e))
     
-        elif self.path=='/index.html/ch1_on':
-            GPIO.output(26, GPIO.HIGH)
+        elif self.path=='/ch1_on':
+            GPIO.output(26, GPIO.HIGH)    
+            content = html.encode('utf-8')
+            self.send_response(200)
+            self.send_header('Content-Type', 'text/html')
+            self.send_header('Content-Length', len(content))
+            self.end_headers()
+            self.wfile.write(content)
             status='Relay Channel 1 is On'
-        elif self.path=='/index.html/ch1_off':
+            self.wfile.write(html.format(temp[5:], status).encode("utf-8"))
+
+        elif self.path=='/ch1_off':
             GPIO.output(26, GPIO.LOW)
+            content = html.encode('utf-8')
+            self.send_response(200)
+            self.send_header('Content-Type', 'text/html')
+            self.send_header('Content-Length', len(content))
+            self.end_headers()
+            self.wfile.write(content)
             status='Relay Channel 1 is Off'
+            self.wfile.write(html.format(temp[5:], status).encode("utf-8"))
+
         # elif self.path=='/ch2_on':
         #     GPIO.output(20, GPIO.HIGH)
         #     status='Relay Channel 2 is On'
