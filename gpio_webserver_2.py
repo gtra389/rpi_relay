@@ -81,8 +81,8 @@ class MyServerHandler(BaseHTTPRequestHandler):
             <body style="width:960px; margin: 20px auto;">
             <p>Current GPU temperature is {}</p>
             <p>Turn Relay Channel 1: <a href="/ch1_on">ON</a> <a href="/ch1_off">OFF</a></p>
-            <p>Turn Relay Channel 2: <a href="/index.html/ch2_on">ON</a> <a href="/index.html/ch2_off">OFF</a></p>
-            <p>Turn Relay Channel 3: <a href="/index.html/ch3_on">ON</a> <a href="/index.html/ch3_off">OFF</a></p>
+            <p>Turn Relay Channel 2: <a href="/ch2_on">ON</a> <a href="/ch2_off">OFF</a></p>
+            <p>Turn Relay Channel 3: <a href="/ch3_on">ON</a> <a href="/ch3_off">OFF</a></p>
             <p>Current status</p>
             <div id="current-status"></div>
             <script>
@@ -95,7 +95,7 @@ class MyServerHandler(BaseHTTPRequestHandler):
             </body>
             </html>
         '''
-        temp = os.popen("/opt/vc/bin/vcgencmd measure_temp").read()
+        
         # self.do_HEAD()
         status = ''
         if self.path == '/':
@@ -111,6 +111,7 @@ class MyServerHandler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(content)
             status = "Start"
+            temp = os.popen("/opt/vc/bin/vcgencmd measure_temp").read()
             self.wfile.write(html.format(temp[5:], status).encode("utf-8"))
 
         elif self.path == '/stream.mjpg':                
@@ -145,6 +146,7 @@ class MyServerHandler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(content)
             status='Relay Channel 1 is On'
+            temp = os.popen("/opt/vc/bin/vcgencmd measure_temp").read()
             self.wfile.write(html.format(temp[5:], status).encode("utf-8"))
 
         elif self.path=='/ch1_off':
@@ -156,20 +158,57 @@ class MyServerHandler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(content)
             status='Relay Channel 1 is Off'
+            temp = os.popen("/opt/vc/bin/vcgencmd measure_temp").read()
             self.wfile.write(html.format(temp[5:], status).encode("utf-8"))
 
-        # elif self.path=='/ch2_on':
-        #     GPIO.output(20, GPIO.HIGH)
-        #     status='Relay Channel 2 is On'
-        # elif self.path=='/ch2_off':
-        #     GPIO.output(20, GPIO.LOW)
-        #     status='Relay Channel 2 is Off'
-        # elif self.path=='/ch3_on':
-        #     GPIO.output(21, GPIO.HIGH)
-        #     status='Relay Channel 3 is On'
-        # elif self.path=='/ch3_off':
-        #     GPIO.output(21, GPIO.LOW)
-        #     status='Relay Channel 3 is Off'
+        elif self.path=='/ch2_on':
+            GPIO.output(20, GPIO.HIGH)
+            content = html.encode('utf-8')
+            self.send_response(200)
+            self.send_header('Content-Type', 'text/html')
+            self.send_header('Content-Length', len(content))
+            self.end_headers()
+            self.wfile.write(content)
+            status='Relay Channel 2 is On'
+            temp = os.popen("/opt/vc/bin/vcgencmd measure_temp").read()
+            self.wfile.write(html.format(temp[5:], status).encode("utf-8"))
+            
+        elif self.path=='/ch2_off':
+            GPIO.output(20, GPIO.LOW)
+            content = html.encode('utf-8')
+            self.send_response(200)
+            self.send_header('Content-Type', 'text/html')
+            self.send_header('Content-Length', len(content))
+            self.end_headers()
+            self.wfile.write(content)
+            status='Relay Channel 2 is Off'
+            temp = os.popen("/opt/vc/bin/vcgencmd measure_temp").read()
+            self.wfile.write(html.format(temp[5:], status).encode("utf-8"))
+
+        elif self.path=='/ch3_on':
+            GPIO.output(21, GPIO.HIGH)
+            content = html.encode('utf-8')
+            self.send_response(200)
+            self.send_header('Content-Type', 'text/html')
+            self.send_header('Content-Length', len(content))
+            self.end_headers()
+            self.wfile.write(content)
+            status='Relay Channel 3 is On'
+            temp = os.popen("/opt/vc/bin/vcgencmd measure_temp").read()
+            self.wfile.write(html.format(temp[5:], status).encode("utf-8"))
+
+        elif self.path=='/ch3_off':
+            GPIO.output(21, GPIO.LOW)
+            content = html.encode('utf-8')
+            self.send_response(200)
+            self.send_header('Content-Type', 'text/html')
+            self.send_header('Content-Length', len(content))
+            self.end_headers()
+            self.wfile.write(content)
+            status='Relay Channel 3 is Off'
+            temp = os.popen("/opt/vc/bin/vcgencmd measure_temp").read()
+            self.wfile.write(html.format(temp[5:], status).encode("utf-8"))
+            
         else:
             self.send_error(404)
             self.end_headers()        
@@ -187,7 +226,7 @@ with picamera.PiCamera(resolution='640x480', framerate=24) as camera:
         address = (host_name, host_port)
         http_server = StreamingServer(address, MyServerHandler)
         print("Server Starts - %s:%s" % (host_name, host_port))
-        server.serve_forever()
+        http_server.serve_forever()
 
     except KeyboardInterrupt:
 		http_server.server_close()
