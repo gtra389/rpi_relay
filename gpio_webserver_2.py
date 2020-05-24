@@ -85,9 +85,9 @@ class MyServerHandler(BaseHTTPRequestHandler):
 
             <body style="width:960px; margin: 20px auto;">
             <p>Current GPU temperature is {}</p>
-            <p>Turn Relay Channel 1: <a href="/ch1/on">ON</a> <a href="/ch1/off">OFF</a></p>
-            <p>Turn Relay Channel 2: <a href="/ch2/on">ON</a> <a href="/ch2/off">OFF</a></p>
-            <p>Turn Relay Channel 3: <a href="/ch3/on">ON</a> <a href="/ch3/off">OFF</a></p>
+            <p>Turn Relay Channel 1: <a href="/index.html/ch1_on">ON</a> <a href="/index.html/ch1_off">OFF</a></p>
+            <p>Turn Relay Channel 2: <a href="/index.html/ch2_on">ON</a> <a href="/index.html/ch2_off">OFF</a></p>
+            <p>Turn Relay Channel 3: <a href="/index.html/ch3_on">ON</a> <a href="/index.html/ch3_off">OFF</a></p>
             <p>Current status</p>
             <div id="current-status"></div>
             <script>
@@ -103,36 +103,20 @@ class MyServerHandler(BaseHTTPRequestHandler):
         temp = os.popen("/opt/vc/bin/vcgencmd measure_temp").read()
         self.do_HEAD()
         status = ''
-        if self.path=='/':
+        if self.path == '/':
             self.send_response(301)
             self.send_header('Location', '/index.html')
             self.end_headers()
-        elif self.path=='/ch1/on':
-            GPIO.output(26, GPIO.HIGH)
-            status='Relay Channel 1 is On'
-        elif self.path=='/ch1/off':
-            GPIO.output(26, GPIO.LOW)
-            status='Relay Channel 1 is Off'
-        elif self.path=='/ch2/on':
-            GPIO.output(20, GPIO.HIGH)
-            status='Relay Channel 2 is On'
-        elif self.path=='/ch2/off':
-            GPIO.output(20, GPIO.LOW)
-            status='Relay Channel 2 is Off'
-        elif self.path=='/ch3/on':
-            GPIO.output(21, GPIO.HIGH)
-            status='Relay Channel 3 is On'
-        elif self.path=='/ch3/off':
-            GPIO.output(21, GPIO.LOW)
-            status='Relay Channel 3 is Off'
-                elif self.path == '/index.html':
-                content = PAGE.encode('utf-8')
+            
+        elif self.path == '/index.html':
+            content = html.encode('utf-8')
             self.send_response(200)
             self.send_header('Content-Type', 'text/html')
             self.send_header('Content-Length', len(content))
             self.end_headers()
             self.wfile.write(content)
-        elif self.path == '/stream.mjpg':
+
+        elif self.path == '/stream.mjpg':                
             self.send_response(200)
             self.send_header('Age', 0)
             self.send_header('Cache-Control', 'no-cache, private')
@@ -154,6 +138,25 @@ class MyServerHandler(BaseHTTPRequestHandler):
                 logging.warning(
                     'Removed streaming client %s: %s',
                     self.client_address, str(e))
+    
+        elif self.path=='/index.html/ch1_on':
+            GPIO.output(26, GPIO.HIGH)
+            status='Relay Channel 1 is On'
+        elif self.path=='/index.html/ch1_off':
+            GPIO.output(26, GPIO.LOW)
+            status='Relay Channel 1 is Off'
+        # elif self.path=='/ch2_on':
+        #     GPIO.output(20, GPIO.HIGH)
+        #     status='Relay Channel 2 is On'
+        # elif self.path=='/ch2_off':
+        #     GPIO.output(20, GPIO.LOW)
+        #     status='Relay Channel 2 is Off'
+        # elif self.path=='/ch3_on':
+        #     GPIO.output(21, GPIO.HIGH)
+        #     status='Relay Channel 3 is On'
+        # elif self.path=='/ch3_off':
+        #     GPIO.output(21, GPIO.LOW)
+        #     status='Relay Channel 3 is Off'
         else:
             self.send_error(404)
             self.end_headers()        
@@ -164,15 +167,17 @@ class StreamingServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
 	allow_reuse_address = True
 	daemon_threads = True
 
-        
-if __name__ == '__main__':
-    with picamera.PiCamera(resolution='640x480', framerate=24) as camera:
-        output = StreamingOutput()
-        camera.start_recording(output, format='mjpeg')
-	address = (host_name, host_port)
-	http_server = StreamingServer(address, MyServerHandler)
-	print("Server Starts - %s:%s" % (host_name, host_port))
-	try:
-		http_server.serve_forever()
-	except KeyboardInterrupt:
+with picamera.PiCamera(resolution='640x480', framerate=24) as camera:
+    output = StreamingOutput()
+    camera.start_recording(output, format='mjpeg')
+    try:
+        address = (host_name, host_port)
+        http_server = StreamingServer(address, MyServerHandler)
+        print("Server Starts - %s:%s" % (host_name, host_port))
+        server.serve_forever()
+
+    except KeyboardInterrupt:
 		http_server.server_close()
+
+    finally:
+        camera.stop_recording()
