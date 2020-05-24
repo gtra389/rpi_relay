@@ -1,14 +1,18 @@
 import RPi.GPIO as GPIO
 import os
-from http.server import BaseHTTPRequestHandler, HTTPServer
+#from http.server import BaseHTTPRequestHandler, HTTPServer
 import time
+import BaseHTTPServer
+from BaseHTTPServer import BaseHTTPRequestHandler
+import SocketServer
+from threading import Condition
 
 
 host_name = '0.0.0.0'    # Change this to your Raspberry Pi IP address
 host_port = 8080
 
 
-class MyServer(BaseHTTPRequestHandler):
+class MyServerHandler(BaseHTTPRequestHandler):
     """ A special implementation of BaseHTTPRequestHander for reading data from
         and control GPIO of a Raspberry Pi
     """
@@ -40,7 +44,7 @@ class MyServer(BaseHTTPRequestHandler):
         '''
         temp = os.popen("/opt/vc/bin/vcgencmd measure_temp").read()
         self.do_HEAD()
-                status = ''
+        status = ''
         if self.path=='/':
             GPIO.setmode(GPIO.BCM)
             GPIO.setwarnings(False)
@@ -52,3 +56,18 @@ class MyServer(BaseHTTPRequestHandler):
             GPIO.output(26, GPIO.LOW)
             status='LED is Off'
         self.wfile.write(html.format(temp[5:], status).encode("utf-8"))
+
+class StreamingServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
+	allow_reuse_address = True
+	daemon_threads = True
+
+        
+if __name__ == '__main__':
+	address = (host_name, host_port)
+	http_server = StreamingServer(address, MyServerHandler)
+	print("Server Starts - %s:%s" % (host_name, host_port))
+
+	try:
+		http_server.serve_forever()
+	except KeyboardInterrupt:
+		http_server.server_close()
